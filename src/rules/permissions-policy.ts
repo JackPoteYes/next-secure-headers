@@ -1,9 +1,11 @@
 import type { ResponseHeader } from "../shared";
 import { FeaturePermissions } from "../shared";
 
-const HEADER_NAME = "Feature-Policy";
+const HEADER_NAME = "Permissions-Policy";
 
-export const createFeaturePolicyHeaderValue = (options?: FeaturePermissions.Options): string | undefined => {
+const parseOrigins = (origins: string[]): string => origins.map((origin) => `"${origin}"`).join(" ");
+
+export const createPermissionsPolicyHeaderValue = (options?: FeaturePermissions.Options): string | undefined => {
   if (!options) return;
 
   const value = Object.keys(options)
@@ -18,28 +20,29 @@ export const createFeaturePolicyHeaderValue = (options?: FeaturePermissions.Opti
       }
       const { none, all, self, origins } = directiveParameters;
 
-      if (none) return `${str}${directiveName} 'none'; `;
-      if (all) return `${str}${directiveName} *; `;
+      if (none) return `${str}${directiveName}=(), `;
+      if (all) return `${str}${directiveName}=*, `;
 
       if (!self && (!origins || !origins.length)) {
         throw new Error(`Invalid directive parameters for ${HEADER_NAME}: ${directiveName}`);
       }
 
-      let value = `${str}${directiveName}`;
+      let directiveValue = "";
 
-      if (self) value = `${value} 'self'`;
-      if (origins && origins.length) value = `${value} ${origins.join(" ")}`;
+      if (self) directiveValue = "self";
+      if (origins && origins.length) directiveValue = `${directiveValue}${self ? " " : ""}${parseOrigins(origins)}`;
 
-      return `${value}; `;
+      return `${str}${directiveName}=(${directiveValue}), `;
     }, "")
-    .trim();
+    .trim()
+    .replace(/,$/g, "");
 
   return value;
 };
 
-export const createFeaturePolicyHeader = (
+export const createPermissionsPolicyHeader = (
   options?: FeaturePermissions.Options,
-  headerValueCreator = createFeaturePolicyHeaderValue,
+  headerValueCreator = createPermissionsPolicyHeaderValue,
 ): ResponseHeader | undefined => {
   if (!options) return;
 

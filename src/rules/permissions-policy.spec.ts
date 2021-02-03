@@ -1,16 +1,16 @@
-import { createFeaturePolicyHeader, createFeaturePolicyHeaderValue } from "./feature-policy";
+import { createPermissionsPolicyHeader, createPermissionsPolicyHeaderValue } from "./permissions-policy";
 import { FeaturePermissions } from "../shared";
 
-describe("createFeaturePolicyHeader", () => {
+describe("createPermissionsPolicyHeader", () => {
   context("when giving undefined", () => {
     it("should return undefined", () => {
-      expect(createFeaturePolicyHeader()).toBeUndefined();
+      expect(createPermissionsPolicyHeader()).toBeUndefined();
     });
   });
 
   context("when giving false", () => {
     it("should return undefined", () => {
-      expect(createFeaturePolicyHeader(false)).toBeUndefined();
+      expect(createPermissionsPolicyHeader(false)).toBeUndefined();
     });
   });
 
@@ -18,38 +18,38 @@ describe("createFeaturePolicyHeader", () => {
     const dummyOptions: FeaturePermissions.Options = { "screen-wake-lock": { none: true } };
 
     let headerValueCreatorMock: jest.Mock<
-      ReturnType<typeof createFeaturePolicyHeaderValue>,
-      Parameters<typeof createFeaturePolicyHeaderValue>
+      ReturnType<typeof createPermissionsPolicyHeaderValue>,
+      Parameters<typeof createPermissionsPolicyHeaderValue>
     >;
     beforeEach(() => {
-      headerValueCreatorMock = jest.fn(createFeaturePolicyHeaderValue);
+      headerValueCreatorMock = jest.fn(createPermissionsPolicyHeaderValue);
     });
 
-    it('should return "Feature-Policy" as object\'s "name" property', () => {
-      expect(createFeaturePolicyHeader(dummyOptions)).toHaveProperty("name", "Feature-Policy");
+    it('should return "Permissions-Policy" as object\'s "name" property', () => {
+      expect(createPermissionsPolicyHeader(dummyOptions)).toHaveProperty("name", "Permissions-Policy");
     });
 
     it('should call the second argument function and return a value from the function as object\'s "value" property', () => {
       const dummyValue = "dummy-value";
       headerValueCreatorMock.mockReturnValue(dummyValue);
 
-      expect(createFeaturePolicyHeader(dummyOptions, headerValueCreatorMock)).toHaveProperty("value", dummyValue);
+      expect(createPermissionsPolicyHeader(dummyOptions, headerValueCreatorMock)).toHaveProperty("value", dummyValue);
       expect(headerValueCreatorMock).toBeCalledWith(dummyOptions);
     });
   });
 });
 
-describe("createFeaturePolicyHeaderValue", () => {
+describe("createPermissionsPolicyHeaderValue", () => {
   context("when giving undefined", () => {
     it("should return undefined", () => {
-      expect(createFeaturePolicyHeaderValue()).toBeUndefined();
-      expect(createFeaturePolicyHeaderValue(null as any)).toBeUndefined();
+      expect(createPermissionsPolicyHeaderValue()).toBeUndefined();
+      expect(createPermissionsPolicyHeaderValue(null as any)).toBeUndefined();
     });
   });
 
   context("when giving false", () => {
     it("should return undefined", () => {
-      expect(createFeaturePolicyHeaderValue(false)).toBeUndefined();
+      expect(createPermissionsPolicyHeaderValue(false)).toBeUndefined();
     });
   });
 
@@ -58,7 +58,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { none: true },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe("screen-wake-lock 'none';");
+      expect(createPermissionsPolicyHeaderValue(options)).toBe("screen-wake-lock=()");
     });
   });
 
@@ -67,7 +67,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { all: true },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe("screen-wake-lock *;");
+      expect(createPermissionsPolicyHeaderValue(options)).toBe("screen-wake-lock=*");
     });
   });
 
@@ -76,7 +76,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { self: true },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe("screen-wake-lock 'self';");
+      expect(createPermissionsPolicyHeaderValue(options)).toBe("screen-wake-lock=(self)");
     });
   });
 
@@ -86,7 +86,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { origins: [dummyOrigin] },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe(`screen-wake-lock ${dummyOrigin};`);
+      expect(createPermissionsPolicyHeaderValue(options)).toBe(`screen-wake-lock=("${dummyOrigin}")`);
     });
   });
 
@@ -96,8 +96,8 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { origins: dummyOrigins },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe(
-        `screen-wake-lock ${dummyOrigins[0]} ${dummyOrigins[1]} ${dummyOrigins[2]};`,
+      expect(createPermissionsPolicyHeaderValue(options)).toBe(
+        `screen-wake-lock=("${dummyOrigins[0]}" "${dummyOrigins[1]}" "${dummyOrigins[2]}")`,
       );
     });
   });
@@ -108,8 +108,8 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { origins: dummyOrigins },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe(
-        `screen-wake-lock ${dummyOrigins[0]} ${dummyOrigins[1]} ${dummyOrigins[2]};`,
+      expect(createPermissionsPolicyHeaderValue(options)).toBe(
+        `screen-wake-lock=("${dummyOrigins[0]}" "${dummyOrigins[1]}" "${dummyOrigins[2]}")`,
       );
     });
   });
@@ -120,8 +120,8 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { self: true, origins: dummyOrigins },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe(
-        `screen-wake-lock 'self' ${dummyOrigins[0]} ${dummyOrigins[1]} ${dummyOrigins[2]};`,
+      expect(createPermissionsPolicyHeaderValue(options)).toBe(
+        `screen-wake-lock=(self "${dummyOrigins[0]}" "${dummyOrigins[1]}" "${dummyOrigins[2]}")`,
       );
     });
   });
@@ -131,7 +131,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const options: FeaturePermissions.Options = {
         "screen-wake-lock": { none: true, origins: ["http://dummy-origin.com"] },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe(`screen-wake-lock 'none';`);
+      expect(createPermissionsPolicyHeaderValue(options)).toBe(`screen-wake-lock=()`);
     });
   });
 
@@ -158,8 +158,8 @@ describe("createFeaturePolicyHeaderValue", () => {
         // Conflicting parameters
         vr: { none: true, origins: ["http://dummy-origin.com"] },
       };
-      expect(createFeaturePolicyHeaderValue(options)).toBe(
-        `accelerometer 'none'; ambient-light-sensor *; autoplay 'self'; battery http://dummy-origin.com; layout-animations http://dummy-origin.com http://dummy-origin2.com http://dummy-origin3.com; screen-wake-lock 'self' http://dummy-origin.com http://dummy-origin2.com http://dummy-origin3.com; vr 'none';`,
+      expect(createPermissionsPolicyHeaderValue(options)).toBe(
+        `accelerometer=(), ambient-light-sensor=*, autoplay=(self), battery=("http://dummy-origin.com"), layout-animations=("http://dummy-origin.com" "http://dummy-origin2.com" "http://dummy-origin3.com"), screen-wake-lock=(self "http://dummy-origin.com" "http://dummy-origin2.com" "http://dummy-origin3.com"), vr=()`,
       );
     });
   });
@@ -169,7 +169,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const wrongOptions: FeaturePermissions.Options = {
         "screen-wake-lock": undefined,
       };
-      expect(() => createFeaturePolicyHeaderValue(wrongOptions)).toThrow();
+      expect(() => createPermissionsPolicyHeaderValue(wrongOptions)).toThrow();
     });
   });
 
@@ -178,7 +178,7 @@ describe("createFeaturePolicyHeaderValue", () => {
       const wrongOptions: FeaturePermissions.Options = {
         "screen-wake-lock": {},
       };
-      expect(() => createFeaturePolicyHeaderValue(wrongOptions)).toThrow();
+      expect(() => createPermissionsPolicyHeaderValue(wrongOptions)).toThrow();
     });
   });
 
@@ -188,7 +188,7 @@ describe("createFeaturePolicyHeaderValue", () => {
         autoplay: { none: true },
         wrongOption: { none: true },
       };
-      expect(() => createFeaturePolicyHeaderValue(wrongOptions)).toThrow();
+      expect(() => createPermissionsPolicyHeaderValue(wrongOptions)).toThrow();
     });
   });
 });
