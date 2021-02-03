@@ -32,6 +32,10 @@ describe("createHeadersObject", () => {
     ReturnType<typeof rules.createNosniffHeader>,
     Parameters<typeof rules.createNosniffHeader>
   >;
+  let permissionsPolicyHeaderCreatorSpy: jest.SpyInstance<
+    ReturnType<typeof rules.createPermissionsPolicyHeader>,
+    Parameters<typeof rules.createPermissionsPolicyHeader>
+  >;
   let referrerPolicyHeaderCreatorSpy: jest.SpyInstance<
     ReturnType<typeof rules.createReferrerPolicyHeader>,
     Parameters<typeof rules.createReferrerPolicyHeader>
@@ -50,19 +54,26 @@ describe("createHeadersObject", () => {
       frameGuardHeaderCreatorSpy = jest.spyOn(rules, "createFrameGuardHeader");
       noopenHeaderCreatorSpy = jest.spyOn(rules, "createNoopenHeader");
       nosniffHeaderCreatorSpy = jest.spyOn(rules, "createNosniffHeader");
+      permissionsPolicyHeaderCreatorSpy = jest.spyOn(rules, "createPermissionsPolicyHeader");
       referrerPolicyHeaderCreatorSpy = jest.spyOn(rules, "createReferrerPolicyHeader");
       xssProtectionHeaderCreatorSpy = jest.spyOn(rules, "createXSSProtectionHeader");
     });
 
     it("should call each rules and give proper options", () => {
+      const featurePermissionsOptions = {
+        autoplay: { none: true },
+        battery: { all: true },
+        vr: { self: true, origins: ["test.com"] },
+      };
       const dummyOptions: Parameters<typeof createHeadersObject>[0] = {
         contentSecurityPolicy: { directives: { scriptSrc: "'self'" } },
         expectCT: [true, { maxAge: 123, enforce: true, reportURI: "https://example.example.com" }],
-        featurePolicy: { autoplay: { none: true }, battery: { all: true }, vr: { self: true, origins: ["test.com"] } },
+        featurePolicy: featurePermissionsOptions,
         forceHTTPSRedirect: [true, { maxAge: 123, preload: true }],
         frameGuard: ["allow-from", { uri: "https://example.example.com" }],
         noopen: false,
         nosniff: false,
+        permissionsPolicy: featurePermissionsOptions,
         xssProtection: ["report", { uri: "https://example.example.com" }],
       };
       createHeadersObject(dummyOptions);
@@ -74,6 +85,7 @@ describe("createHeadersObject", () => {
       expect(frameGuardHeaderCreatorSpy).toBeCalledWith(dummyOptions.frameGuard);
       expect(noopenHeaderCreatorSpy).toBeCalledWith(dummyOptions.noopen);
       expect(nosniffHeaderCreatorSpy).toBeCalledWith(dummyOptions.nosniff);
+      expect(permissionsPolicyHeaderCreatorSpy).toBeCalledWith(dummyOptions.permissionsPolicy);
       expect(referrerPolicyHeaderCreatorSpy).toBeCalledWith(dummyOptions.referrerPolicy);
       expect(xssProtectionHeaderCreatorSpy).toBeCalledWith(dummyOptions.xssProtection);
     });
@@ -97,6 +109,9 @@ describe("createHeadersObject", () => {
       featurePolicyHeaderCreatorSpy = jest
         .spyOn(rules, "createFeaturePolicyHeader")
         .mockReturnValue({ name: "dummy-5", value: undefined });
+      permissionsPolicyHeaderCreatorSpy = jest
+        .spyOn(rules, "createPermissionsPolicyHeader")
+        .mockReturnValue({ name: "dummy-6", value: undefined });
     });
 
     it("should omit headers which have undefined value", () => {
@@ -107,6 +122,7 @@ describe("createHeadersObject", () => {
       expect(returnedHeaders).not.toHaveProperty("dummy-3");
       expect(returnedHeaders).toHaveProperty("dummy-4", "example-4");
       expect(returnedHeaders).not.toHaveProperty("dummy-5");
+      expect(returnedHeaders).not.toHaveProperty("dummy-6");
     });
   });
 });
@@ -128,13 +144,19 @@ describe("createSecureHeaders", () => {
       { key: "X-XSS-Protection", value: "1" },
     ]);
     expect(
-      createSecureHeaders({ frameGuard: "sameorigin", referrerPolicy: "same-origin", featurePolicy: { vr: { none: true } } }),
+      createSecureHeaders({
+        frameGuard: "sameorigin",
+        referrerPolicy: "same-origin",
+        featurePolicy: { vr: { none: true } },
+        permissionsPolicy: { vr: { none: true } },
+      }),
     ).toEqual([
       { key: "Feature-Policy", value: "vr 'none';" },
       { key: "Strict-Transport-Security", value: "max-age=63072000" },
       { key: "X-Frame-Options", value: "sameorigin" },
       { key: "X-Download-Options", value: "noopen" },
       { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Permissions-Policy", value: "vr=()" },
       { key: "Referrer-Policy", value: "same-origin" },
       { key: "X-XSS-Protection", value: "1" },
     ]);

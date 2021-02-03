@@ -5,7 +5,7 @@ import { rules } from "./rules";
 import type {
   ContentSecurityPolicyOption,
   ExpectCTOption,
-  FeaturePolicyOptions,
+  FeaturePermissions,
   ForceHTTPSRedirectOption,
   FrameGuardOption,
   NoopenOption,
@@ -30,7 +30,14 @@ type Options = Partial<{
    * This is to set "Feature-Policy" header and it provides a mechanism to allow and deny the use of browser features in its
    * own frame, and in content within any <iframe> elements in the document.
    */
-  featurePolicy: FeaturePolicyOptions;
+  featurePolicy: FeaturePermissions.Options;
+  /**
+   * This header will replace the Feature-Policy header above in the future. They both do the same thing, but their syntax differ.
+   * Although it is still a W3C draft, it can be enabled in the latest browsers, and it is a recommended security practice to
+   * include it.
+   * More info: https://github.com/w3c/webappsec-permissions-policy/blob/master/permissions-policy-explainer.md#wait-isnt-this-feature-policy
+   */
+  permissionsPolicy: FeaturePermissions.Options;
   /**
    * This is to set "Strict-Transport-Security (HSTS)" header and it's to prevent man-in-the-middle attacks during redirects from HTTP to HTTPS.
    * To enable this is highly recommended if you use HTTPS (SSL) on your servers.
@@ -80,6 +87,7 @@ export const createHeadersObject = (options: Options = {}) => {
     rules.createFrameGuardHeader(options.frameGuard),
     rules.createNoopenHeader(options.noopen),
     rules.createNosniffHeader(options.nosniff),
+    rules.createPermissionsPolicyHeader(options.permissionsPolicy),
     rules.createReferrerPolicyHeader(options.referrerPolicy),
     rules.createXSSProtectionHeader(options.xssProtection),
   ].forEach((header) => {

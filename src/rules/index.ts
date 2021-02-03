@@ -5,12 +5,13 @@ import { createForceHTTPSRedirectHeader } from "./force-https-redirect";
 import { createFrameGuardHeader } from "./frame-guard";
 import { createNoopenHeader } from "./noopen";
 import { createNosniffHeader } from "./nosniff";
+import { createPermissionsPolicyHeader } from "./permissions-policy";
 import { createReferrerPolicyHeader } from "./referrer-policy";
 import { createXSSProtectionHeader } from "./xss-protection";
 
 export type { ContentSecurityPolicyOption } from "./content-security-policy";
 export type { ExpectCTOption } from "./expect-ct";
-export type { FeaturePolicyOptions } from "./feature-policy";
+export type { FeaturePermissions } from "../shared";
 export type { ForceHTTPSRedirectOption } from "./force-https-redirect";
 export type { FrameGuardOption } from "./frame-guard";
 export type { NoopenOption } from "./noopen";
@@ -28,6 +29,7 @@ export const rules = {
   createFrameGuardHeader,
   createNoopenHeader,
   createNosniffHeader,
+  createPermissionsPolicyHeader,
   createReferrerPolicyHeader,
   createXSSProtectionHeader,
 };
